@@ -165,24 +165,30 @@ Open: **[http://localhost:5173](http://localhost:5173)**
 
 ## 🔐 API (Quick Reference)
 
-**Auth**
+> Base URL: `http://localhost:4000` (update to your Render URL in prod)  
+> Auth: send `Authorization: Bearer <token>` **or** rely on the HTTP-only cookie set by `/auth/login`.
 
-* `POST /auth/signup`
-* `POST /auth/login`
-* `GET /auth/me`
+### Auth
+- `POST /auth/signup`
+- `POST /auth/login`
+- `POST /auth/logout`
+- `GET  /auth/me`
 
-**Admin**
+### Admin
+- `POST /salary-slip` — create slip
+- `PUT  /salary-slip/:id` — update slip
+- `GET  /salary-slip/admin/all` — list all slips (optional filters)
+- `GET  /expense/admin/all` — list all expenses
+- `PUT  /expense/admin/:id/status` — `{ "status": "approved" | "rejected" }`
+- `GET  /users?role=employee&q=<search>&limit=50` — list users
+- `GET  /users/:id` — get one user
 
-* `POST /salary-slip`
-* `PUT /salary-slip/:id`
-* `GET /expense/admin/all`
-* `PUT /expense/admin/:id/status`
+### Employee
+- `GET  /salary-slip?month=YYYY-MM` — my slips (optional month filter)
+- `GET  /salary-slip/:id/pdf` — download/stream my slip PDF
+- `POST /expense` — create expense
+- `GET  /expense?from=YYYY-MM-DD&to=YYYY-MM-DD` — my expenses (optional date range)
 
-**Employee**
-
-* `GET /salary-slip?month=YYYY-MM`
-* `POST /expense`
-* `GET /expense`
 
 ---
 
