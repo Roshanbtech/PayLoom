@@ -1,4 +1,3 @@
-```markdown
 # PayLoom — Payroll Management System (MERN + Ant Design)
 
 A full-stack payroll app with **Admin** and **Employee** roles.
@@ -227,5 +226,4 @@ Open: **[http://localhost:5173](http://localhost:5173)**
 
 MIT
 
-```
 ```
