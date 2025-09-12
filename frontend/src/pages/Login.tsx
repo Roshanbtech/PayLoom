@@ -1,5 +1,5 @@
 import { Button, Card, Form, Input, Typography } from 'antd';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from '../ui/toast';
 import { storage } from '../lib/storage';
@@ -22,8 +22,8 @@ export default function Login() {
   };
 
   if (user) { 
-    nav(user.role === 'admin' ? '/admin' : '/app', { replace: true }); 
-    return null; 
+    const to = user.role === 'admin' ? '/admin' : '/app';
+    return <Navigate to={to} replace />;
   }
 
   return (
