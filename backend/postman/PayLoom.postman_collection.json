@@ -1,0 +1,239 @@
+{
+  "info": {
+    "name": "PayLoom API (Self-signup enabled)",
+    "_postman_id": "payloom-self-signup",
+    "description": "PayLoom payroll & expenses API. Open employee signup; admin manages slips and expense approvals.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:4000" },
+    { "key": "ADMIN_TOKEN", "value": "" },
+    { "key": "EMP_TOKEN", "value": "" },
+    { "key": "EMP_ID", "value": "" },
+    { "key": "NEW_USER_EMAIL", "value": "new.emp+01@demo.dev" },
+    { "key": "NEW_USER_PASSWORD", "value": "Emp@2025!" },
+    { "key": "NEW_USER_NAME", "value": "New Employee 01" },
+    { "key": "NEW_USER_ID", "value": "" },
+    { "key": "SLIP_ID", "value": "" },
+    { "key": "EXPENSE_ID", "value": "" },
+    { "key": "MONTH", "value": "2025-08" },
+    { "key": "EXPENSE_DATE", "value": "2025-08-28" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Auth / Signup (Open, employee)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/signup", "host": ["{{baseUrl}}"], "path": ["auth", "signup"] },
+            "body": { "mode": "raw", "raw": "{\"email\":\"{{NEW_USER_EMAIL}}\",\"password\":\"{{NEW_USER_PASSWORD}}\",\"name\":\"{{NEW_USER_NAME}}\"}" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json && json.id) pm.collectionVariables.set('NEW_USER_ID', json.id);",
+                  "pm.test('Signup returns id', function () { pm.expect(json.id).to.be.ok; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Auth / Login (New Employee)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "body": { "mode": "raw", "raw": "{\"email\":\"{{NEW_USER_EMAIL}}\",\"password\":\"{{NEW_USER_PASSWORD}}\"}" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json && json.token) pm.collectionVariables.set('EMP_TOKEN', json.token);",
+                  "if (json && json.user && json.user.id) pm.collectionVariables.set('EMP_ID', json.user.id);",
+                  "pm.test('Employee token saved', function () { pm.expect(pm.collectionVariables.get('EMP_TOKEN')).to.be.a('string'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Auth / Login (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "body": { "mode": "raw", "raw": "{\"email\":\"admin@demo.dev\",\"password\":\"Admin@2025!\"}" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json && json.token) pm.collectionVariables.set('ADMIN_TOKEN', json.token);",
+                  "pm.test('Admin token saved', function () { pm.expect(pm.collectionVariables.get('ADMIN_TOKEN')).to.be.a('string'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Auth / Me (Current)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{EMP_TOKEN}}" }],
+            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] }
+          }
+        },
+        {
+          "name": "Auth / Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Salary Slips",
+      "item": [
+        {
+          "name": "Salary / Create (Admin → for EMP_ID)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/salary-slip", "host": ["{{baseUrl}}"], "path": ["salary-slip"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"employeeId\":\"{{EMP_ID}}\",\"month\":\"{{MONTH}}\",\"earnings\":{\"basic\":50000,\"hra\":20000,\"allowances\":[{\"name\":\"Transport\",\"amount\":2500}]},\"deductions\":{\"tax\":8000,\"other\":[{\"name\":\"PF\",\"amount\":3600}]},\"notes\":\"Monthly payroll\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json && (json._id || json.id)) pm.collectionVariables.set('SLIP_ID', json._id || json.id);",
+                  "pm.test('Slip created', function () { pm.expect(pm.collectionVariables.get('SLIP_ID')).to.be.ok; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Salary / List (Employee, all)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{EMP_TOKEN}}" }],
+            "url": { "raw": "{{baseUrl}}/salary-slip", "host": ["{{baseUrl}}"], "path": ["salary-slip"] }
+          }
+        },
+        {
+          "name": "Salary / List by Month (Employee)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{EMP_TOKEN}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/salary-slip?month={{MONTH}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["salary-slip"],
+              "query": [{ "key": "month", "value": "{{MONTH}}" }]
+            }
+          }
+        },
+        {
+          "name": "Salary / PDF (Employee)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{EMP_TOKEN}}" }],
+            "url": { "raw": "{{baseUrl}}/salary-slip/{{SLIP_ID}}/pdf", "host": ["{{baseUrl}}"], "path": ["salary-slip", "{{SLIP_ID}}", "pdf"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Expenses",
+      "item": [
+        {
+          "name": "Expense / Submit (Employee)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{EMP_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/expense", "host": ["{{baseUrl}}"], "path": ["expense"] },
+            "body": { "mode": "raw", "raw": "{\"date\":\"{{EXPENSE_DATE}}\",\"category\":\"Internet\",\"amount\":1499,\"description\":\"Home broadband\"}" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json && (json._id || json.id)) pm.collectionVariables.set('EXPENSE_ID', json._id || json.id);",
+                  "pm.test('Expense created', function () { pm.expect(pm.collectionVariables.get('EXPENSE_ID')).to.be.ok; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Expense / List (Employee)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{EMP_TOKEN}}" }],
+            "url": { "raw": "{{baseUrl}}/expense", "host": ["{{baseUrl}}"], "path": ["expense"] }
+          }
+        },
+        {
+          "name": "Expense / Admin List All",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": { "raw": "{{baseUrl}}/expense/admin/all", "host": ["{{baseUrl}}"], "path": ["expense", "admin", "all"] }
+          }
+        },
+        {
+          "name": "Expense / Admin Update Status (approve)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/expense/admin/{{EXPENSE_ID}}/status", "host": ["{{baseUrl}}"], "path": ["expense", "admin", "{{EXPENSE_ID}}", "status"] },
+            "body": { "mode": "raw", "raw": "{\"status\":\"approved\"}" }
+          }
+        },
+        {
+          "name": "Expense / Admin Update Status (reject)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/expense/admin/{{EXPENSE_ID}}/status", "host": ["{{baseUrl}}"], "path": ["expense", "admin", "{{EXPENSE_ID}}", "status"] },
+            "body": { "mode": "raw", "raw": "{\"status\":\"rejected\"}" }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+@font-face {
+  font-family: 'InterVar';
+  src: local('Inter'), local('Inter var');
+  font-display: swap;
+}
+
+/* ===== Atlas Colors ===== */
+:root {
+  --payloom-primary: #16a34a;
+  --payloom-bg: #0b1114;
+  --payloom-elev: #0f1a1c;
+  --payloom-text: #e6f4ea;
+}
+
+/* ===== Base ===== */
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: var(--payloom-bg);
+  color: var(--payloom-text);
+  font-family: InterVar, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial;
+}
+a { color: var(--payloom-primary); }
+.ant-layout { min-height: 100vh; }
+.brand-gradient {
+  background:
+    radial-gradient(60% 80% at 0% 0%, rgba(22,163,74,.15), transparent 60%),
+    radial-gradient(60% 80% at 100% 100%, rgba(14,163,91,.12), transparent 60%);
+}
+
+/* ===== Toastify — Atlas Dark Green ===== */
+.Toastify__toast { box-shadow: 0 6px 20px rgba(0,0,0,.35); }
+.Toastify__toast--success { border-left: 4px solid #16a34a; }
+.Toastify__toast--error { border-left: 4px solid #ef4444; }
+.Toastify__toast--info { border-left: 4px solid #16a34a; }
+.Toastify__toast-icon svg { fill: #16a34a; }
+
+/* ===== Scrollbar — Atlas Dark Green ===== */
+:root{
+  --scroll-track: var(--payloom-elev);
+  --scroll-thumb: var(--payloom-primary);
+  --scroll-thumb-hover: #1fc267;
+}
+
+/* Firefox */
+html, body, .ant-layout, .ant-modal-body, .ant-drawer-body, .ant-table-body {
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+  scrollbar-width: thin;
+}
+
+/* WebKit (Chrome/Edge/Safari) */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: var(--scroll-track); }
+*::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: 999px;
+  border: 2px solid var(--scroll-track);
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); }
+*::-webkit-scrollbar-corner { background: transparent; }
+
+/* Ant Design scrollable areas (ensure consistency) */
+.ant-table-body::-webkit-scrollbar { height: 10px; }
+.ant-modal-body, .ant-drawer-body, .ant-layout-sider-children {
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+}
+
+/* ===== Card header/bodies to match Atlas ===== */
+.ant-card {
+  background: var(--payloom-elev);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.06);
+}
+.ant-card-head {
+  background: var(--payloom-elev);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.ant-card-head-title {
+  color: var(--payloom-text);
+  font-weight: 700;
+}
+.table-card .ant-card-body { padding: 16px; }
+
+/* ===== Table responsiveness helpers ===== */
+.table-wrap { overflow: auto; }
+@media (max-width: 576px) {
+  .table-wrap { max-height: calc(100vh - 220px); }
+}
+
+/* Keep table body transparent so the card shows through */
+.ant-table { background: transparent; }
+
+/* ===== Atlas-dark confirm modal ===== */
+.atlas-confirm .ant-modal-content { background: var(--payloom-elev); color: var(--payloom-text); }
+.atlas-confirm .ant-modal-confirm-title { color: var(--payloom-text); }
+.atlas-confirm .ant-modal-confirm-content { color: rgba(230, 244, 234, .85); }
+.atlas-confirm .ant-modal-confirm-btns .ant-btn-primary { background: var(--payloom-primary); }
+.atlas-confirm .ant-modal-confirm-btns .ant-btn-text { color: var(--payloom-primary); }
+.atlas-confirm .ant-modal-confirm-btns .ant-btn-dangerous.ant-btn-text { color: #ef4444; }
+
+/* =========================================================
+   Atlas Green Table Header (NO STICKY CLONE, NO OVERLAP)
+   ========================================================= */
+.atlas-table-green .ant-table-container {
+  border-radius: 12px;
+  overflow: hidden; /* clip header corners */
+}
+
+/* Primary emerald header */
+.atlas-table-green .ant-table-thead > tr > th {
+  background: var(--payloom-primary) !important;
+  color: #0b1114 !important;
+  font-weight: 600;
+  border-bottom: none !important;
+}
+
+/* Remove AntD top divider line on header cells */
+.atlas-table-green .ant-table-thead > tr > th::before { display: none !important; }
+
+/* Make sure the regular (non-sticky) header is used */
+.atlas-table-green .ant-table-sticky-holder { display: none !important; }
+
+/* Body rows separators (subtle) */
+.atlas-table-green .ant-table-tbody > tr > td {
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}

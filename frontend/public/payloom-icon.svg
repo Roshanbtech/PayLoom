@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="PayLoom">
+<defs>
+<linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0%" stop-color="#16a34a"/>
+<stop offset="100%" stop-color="#0ea35b"/>
+</linearGradient>
+</defs>
+<rect width="64" height="64" rx="14" fill="#0b1114"/>
+<!-- Loom rings -->
+<circle cx="32" cy="32" r="18" fill="none" stroke="url(#g)" stroke-width="4"/>
+<circle cx="32" cy="32" r="10" fill="none" stroke="#16a34a" stroke-width="3" opacity="0.85"/>
+<!-- P mark -->
+<path d="M24 44V20h13c5.5 0 9 3.8 9 8.7S42.5 38 37 38h-6v6h-7zM31 31h6c2.7 0 4-1.6 4-2.8 0-1.7-1.5-3.2-4-3.2h-6v6z" fill="#16a34a"/>
+</svg>

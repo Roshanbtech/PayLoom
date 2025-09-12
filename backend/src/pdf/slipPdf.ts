@@ -1,0 +1,158 @@
+// src/pdf/slipPdf.ts
+import PDFDocument from 'pdfkit';
+import { Response } from 'express';
+import dayjs from 'dayjs';
+
+const C = {
+  primary: '#16a34a',
+  headerText: '#ffffff',
+  text: '#0b1114',
+  muted: '#475569',
+  border: '#d1d5db',
+  band: '#f6fef9',
+};
+
+const INR = (n: number | undefined | null) =>
+  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(Number(n ?? 0));
+
+export function streamSlipPdf(
+  res: Response,
+  slip: any,
+  employee: { name?: string; email: string }
+) {
+  // bufferPages so we can add footer to *all* pages at the end
+  const doc = new PDFDocument({ margin: 40, bufferPages: true });
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `inline; filename="salary-slip-${slip.month}.pdf"`);
+  doc.pipe(res);
+
+  const pageW = doc.page.width;
+  const left = 40;
+  const right = pageW - 40;
+  const full = right - left;
+
+  // ===== Header bar =====
+  doc.save();
+  doc.rect(left, 40, full, 40).fill(C.primary);
+  doc.fillColor(C.headerText).font('Helvetica-Bold').fontSize(18)
+     .text('PayLoom • Salary Slip', left, 50, { width: full, align: 'center' });
+  doc.restore();
+
+  doc.moveDown(2);
+
+  // ===== Meta box =====
+  const metaTop = doc.y;
+  const metaH = 60;
+  doc.save();
+  doc.roundedRect(left, metaTop, full, metaH, 6).strokeColor(C.border).lineWidth(1).stroke();
+  doc.restore();
+
+  const colW = full / 2;
+  doc.font('Helvetica').fontSize(12).fillColor(C.muted);
+  doc.text('Employee', left + 12, metaTop + 10);
+  doc.text('Month', left + 12, metaTop + 34);
+  doc.text('Email', left + 12 + colW, metaTop + 10);
+
+  doc.fillColor(C.text).font('Helvetica-Bold');
+  doc.text(employee.name || '-', left + 90, metaTop + 10, { width: colW - 100 });
+  doc.text(slip.month, left + 90, metaTop + 34, { width: colW - 100 });
+  doc.text(employee.email, left + 12 + colW + 48, metaTop + 10, { width: colW - 60 });
+
+  doc.moveDown(4);
+
+  // Helpers
+  const sectionTitle = (t: string) => {
+    doc.moveDown(1.0);
+    doc.fillColor(C.text).font('Helvetica-Bold').fontSize(14).text(t);
+    doc.moveTo(left, doc.y + 6).lineTo(right, doc.y + 6).strokeColor(C.border).lineWidth(1).stroke();
+    doc.moveDown(0.8);
+  };
+
+  const kvRow = (label: string, value: string, band = false, boldValue = false) => {
+    const y = doc.y;
+    const rowH = 20;
+
+    if (band) {
+      doc.save();
+      doc.rect(left, y - 2, full, rowH).fill(C.band);
+      doc.restore();
+    }
+
+    doc.fillColor(C.muted).font('Helvetica').fontSize(12)
+       .text(label, left + 10, y, { width: full - 20 });
+
+    doc.fillColor(C.text).font(boldValue ? 'Helvetica-Bold' : 'Helvetica')
+       .text(value, left + 10, y, { width: full - 20, align: 'right' });
+
+    doc.moveDown(0.6);
+  };
+
+  // Data
+  const earn = slip.earnings || {};
+  const ded = slip.deductions || {};
+  const allowances = Array.isArray(earn.allowances) ? earn.allowances : [];
+  const others = Array.isArray(ded.other) ? ded.other : [];
+
+  const earningsTotal =
+    Number(earn.basic || 0) +
+    Number(earn.hra || 0) +
+    allowances.reduce((s: number, a: any) => s + Number(a?.amount || 0), 0);
+
+  const deductionsTotal =
+    Number(ded.tax || 0) +
+    others.reduce((s: number, o: any) => s + Number(o?.amount || 0), 0);
+
+  // ===== Earnings =====
+  sectionTitle('Earnings');
+  let band = false;
+  kvRow('Basic', INR(earn.basic), band = !band);
+  if (earn.hra) kvRow('HRA', INR(earn.hra), band = !band);
+  allowances.forEach((a: any) => kvRow(a?.name || 'Allowance', INR(a?.amount || 0), band = !band));
+  kvRow('Total Earnings', INR(earningsTotal), band = !band, true);
+
+  // ===== Deductions =====
+  sectionTitle('Deductions');
+  band = false;
+  if (ded.tax) kvRow('Tax', INR(ded.tax), band = !band);
+  others.forEach((o: any) => kvRow(o?.name || 'Other', INR(o?.amount || 0), band = !band));
+  kvRow('Total Deductions', INR(deductionsTotal), band = !band, true);
+
+  // ===== Net Pay (highlight) =====
+  sectionTitle('Net Pay');
+  const chipY = doc.y;
+  const chipH = 28;
+  doc.save();
+  doc.roundedRect(left, chipY, full, chipH, 6).fill(C.primary);
+  doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(14)
+     .text(INR(slip.netPay), left + 14, chipY + 7, { width: full - 28, align: 'left' });
+  doc.restore();
+  doc.moveDown(2);
+
+  // ===== Notes =====
+  if (slip.notes) {
+    sectionTitle('Notes');
+    doc.fillColor(C.text).font('Helvetica').fontSize(12).text(slip.notes, { width: full });
+  }
+
+  // ===== Footer on every page =====
+  const range = doc.bufferedPageRange(); // {start, count}
+  for (let i = range.start; i < range.start + range.count; i++) {
+    doc.switchToPage(i);
+    const footerY = doc.page.height - 30;
+
+    // rule
+    doc.moveTo(left, footerY - 12).lineTo(right, footerY - 12)
+       .strokeColor(C.border).lineWidth(1).stroke();
+
+    // left: generator + time
+    doc.font('Helvetica').fontSize(10).fillColor(C.muted)
+       .text(`Generated by PayLoom • ${dayjs().format('YYYY-MM-DD HH:mm')}`,
+             left, footerY - 10, { width: full / 2 - 8, align: 'left' });
+
+    // right: page numbers
+    doc.text(`Page ${i - range.start + 1} of ${range.count}`,
+             left + full / 2, footerY - 10, { width: full / 2, align: 'right' });
+  }
+
+  doc.end();
+}
