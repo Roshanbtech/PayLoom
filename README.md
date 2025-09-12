@@ -225,5 +225,5 @@ Open: **[http://localhost:5173](http://localhost:5173)**
 ## 📜 License
 
 MIT
-
+© 2025 Roshanbtech
 ```
