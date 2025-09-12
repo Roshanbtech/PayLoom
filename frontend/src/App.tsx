@@ -22,7 +22,7 @@ export default function App() {
       <BrowserRouter>
         <ToastHost />
         <Routes>
-          <Route path="/" element={<Navigate to="/login" />} />
+          <Route path="/" element={<Navigate to="/login" replace/>} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
 
@@ -47,7 +47,7 @@ export default function App() {
             <Route path="expenses" element={<MyExpenses />} />
           </Route>
 
-          <Route path="*" element={<Navigate to="/login" />} />
+          <Route path="*" element={<Navigate to="/login" replace/>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
