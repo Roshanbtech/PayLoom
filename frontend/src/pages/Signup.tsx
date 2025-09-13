@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button, Card, Form, Input, Typography } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -6,19 +7,29 @@ import { toast } from '../ui/toast';
 export default function Signup() {
   const { signup } = useAuth();
   const nav = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [form] = Form.useForm();
 
   const onFinish = async (v: any) => {
+    if (loading) return; 
+    setLoading(true);
     try {
-      await signup(v.name, v.email, v.password);
+      const name = String(v.name || '').trim();
+      const email = String(v.email || '').trim();
+      const password = String(v.password || '');
+      await signup(name, email, password);
       toast.success('Account created. Please login.');
-      nav('/login');
+      form.resetFields();
+      nav('/login', { replace: true });
     } catch (e: any) {
       toast.error(e?.response?.data?.message || 'Signup failed');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div 
+    <div
       style={{
         display: 'grid',
         placeItems: 'center',
@@ -27,16 +38,16 @@ export default function Signup() {
         boxSizing: 'border-box'
       }}
     >
-      <Card 
-        style={{ 
+      <Card
+        style={{
           width: '100%',
           maxWidth: '420px',
           minWidth: '280px'
         }}
       >
-        <Typography.Title 
-          level={3} 
-          style={{ 
+        <Typography.Title
+          level={3}
+          style={{
             textAlign: 'center',
             fontSize: 'clamp(18px, 4vw, 24px)',
             marginBottom: '24px'
@@ -44,64 +55,91 @@ export default function Signup() {
         >
           Create your PayLoom account
         </Typography.Title>
-        
-        <Form layout="vertical" onFinish={onFinish}>
-          <Form.Item 
-            name="name" 
-            label="Full name" 
-            rules={[{ required: true }]}
+
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={onFinish}
+          aria-busy={loading}
+        >
+          <Form.Item
+            name="name"
+            label="Full name"
+            rules={[{ required: true, message: 'Please enter your full name' }]}
           >
-            <Input 
-              style={{ 
-                height: '40px',
-                fontSize: '16px' // Prevents zoom on iOS
-              }} 
+            <Input
+              autoComplete="name"
+              disabled={loading}
+              style={{ height: '40px', fontSize: '16px' }}
             />
           </Form.Item>
-          
-          <Form.Item 
-            name="email" 
-            label="Email" 
-            rules={[{ required: true, type: 'email' }]}
+
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[
+              { required: true, message: 'Please enter your email' },
+              { type: 'email', message: 'Please enter a valid email' }
+            ]}
           >
-            <Input 
-              style={{ 
-                height: '40px',
-                fontSize: '16px' // Prevents zoom on iOS
-              }} 
+            <Input
+              autoComplete="email"
+              disabled={loading}
+              style={{ height: '40px', fontSize: '16px' }}
             />
           </Form.Item>
-          
-          <Form.Item 
-            name="password" 
-            label="Password" 
-            rules={[{ required: true, min: 8 }]}
+
+          <Form.Item
+            name="password"
+            label="Password"
+            rules={[
+              { required: true, message: 'Please enter a password' },
+              { min: 8, message: 'Password must be at least 8 characters' }
+            ]}
           >
-            <Input.Password 
-              style={{ 
-                height: '40px',
-                fontSize: '16px' // Prevents zoom on iOS
-              }} 
+            <Input.Password
+              autoComplete="new-password"
+              disabled={loading}
+              style={{ height: '40px', fontSize: '16px' }}
             />
           </Form.Item>
-          
-          <Button 
-            type="primary" 
-            htmlType="submit" 
+
+          {/* Optional but recommended: confirm password */}
+          <Form.Item
+            name="confirm"
+            label="Confirm password"
+            dependencies={['password']}
+            hasFeedback
+            rules={[
+              { required: true, message: 'Please confirm your password' },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue('password') === value) return Promise.resolve();
+                  return Promise.reject(new Error('Passwords do not match'));
+                }
+              })
+            ]}
+          >
+            <Input.Password
+              autoComplete="new-password"
+              disabled={loading}
+              style={{ height: '40px', fontSize: '16px' }}
+            />
+          </Form.Item>
+
+          <Button
+            type="primary"
+            htmlType="submit"
             block
-            style={{ 
-              height: '40px',
-              fontSize: '16px'
-            }}
+            loading={loading}           
+            disabled={loading}
+            style={{ height: '40px', fontSize: '16px' }}
           >
-            Create Account
+            {loading ? 'Creating account…' : 'Create Account'}
           </Button>
         </Form>
-        
-        <div style={{ 
-          marginTop: 16, 
-          textAlign: 'center' 
-        }}>
+
+        <div style={{ marginTop: 16, textAlign: 'center' }}>
           <Link to="/login">Back to login</Link>
         </div>
       </Card>
