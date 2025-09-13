@@ -9,8 +9,8 @@ A full-stack payroll app with **Admin** and **Employee** roles.
 
 ## 🌐 Live Demo
 
-- **Frontend (Vercel):** _<your-frontend-url-here>_
-- **Backend (Render):** _<your-backend-url-here>_
+- **Frontend (Vercel):** https://pay-loom.vercel.app/
+- **Backend (Render):** https://payloom.onrender.com
 
 **Demo Login (required by assignment)**  
 `Email: hire-me@anshumat.org`  
